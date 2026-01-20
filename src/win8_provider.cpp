@@ -24,7 +24,9 @@
  * SOFTWARE.
  */
 
-#include <Spellcheck.h>
+#include <windows.h>
+#include <objbase.h>
+#include <spellcheck.h>
 #include <glib.h>
 
 #include <enchant-provider.h>
@@ -94,7 +96,7 @@ enumstring_to_chararray (IEnumString *strings, size_t *out_len, gboolean from_bc
 /* ---------- Dict ------------ */
 
 static void
-win8_dict_add_to_personal (EnchantProviderDict *dict, const char *const word, size_t len)
+win8_dict_add_to_session (EnchantProviderDict *dict, const char *const word, size_t len)
 {
 	auto checker = static_cast<ISpellChecker*>(dict->user_data);
 	wchar_t *wword = utf8_to_utf16 (word, len, FALSE);
@@ -104,12 +106,12 @@ win8_dict_add_to_personal (EnchantProviderDict *dict, const char *const word, si
 }
 
 static void
-win8_dict_add_to_session (EnchantProviderDict *dict, const char *const word, size_t len)
+win8_dict_remove_from_session (EnchantProviderDict *dict, const char *const word, size_t len)
 {
 	auto checker = static_cast<ISpellChecker*>(dict->user_data);
 	wchar_t *wword = utf8_to_utf16 (word, len, FALSE);
 
-	checker->Ignore (wword);
+	checker->Remove (wword);
 	g_free (wword);
 }
 
@@ -181,9 +183,8 @@ win8_provider_request_dict (EnchantProvider *provider, const char *const tag)
 	dict = enchant_provider_dict_new (provider, tag);
 	dict->suggest = win8_dict_suggest;
 	dict->check = win8_dict_check;
-	dict->add_to_personal = win8_dict_add_to_personal;
-	dict->add_to_exclude = win8_dict_add_to_personal; /* Basically the same */
 	dict->add_to_session = win8_dict_add_to_session;
+	dict->remove_from_session = win8_dict_remove_from_session;
 
 	dict->user_data = checker;
 
@@ -196,9 +197,7 @@ win8_provider_dispose_dict (EnchantProvider *provider, EnchantProviderDict *dict
 	if (dict)
 	{
 		auto checker = static_cast<ISpellChecker*>(dict->user_data);
-
 		checker->Release ();
-		g_free (dict);
 	}
 }
 
