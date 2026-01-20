@@ -22,13 +22,13 @@ jobs:
         with:
           release: false
           update: true
-          install: mingw-w64-x86_64-gcc mingw-w64-x86_64-enchant
+          install: mingw-w64-x86_64-gcc mingw-w64-x86_64-glib2 mingw-w64-x86_64-enchant
 
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Build
-        run: gcc -shared -fPIC -o libenchant_win8.dll src/win8_provider.c
+        run: gcc -shared -fPIC -o libenchant_win8.dll src/win8_provider.c $(pkg-config --cflags --libs glib-2.0 enchant-2)
 
       - name: Upload (workflow artifact)
         uses: actions/upload-artifact@v4
