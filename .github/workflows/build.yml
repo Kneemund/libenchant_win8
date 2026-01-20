@@ -1,5 +1,4 @@
 ---
-
 name: Build
 
 "on":
@@ -23,13 +22,15 @@ jobs:
           release: false
           update: true
           install: |
-            mingw-w64-x86_64-gcc 
+            mingw-w64-x86_64-gcc
             mingw-w64-x86_64-autotools
-            mingw-w64-x86_64-glib2 
+            mingw-w64-x86_64-glib2
             mingw-w64-x86_64-enchant
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Build
         run: make
