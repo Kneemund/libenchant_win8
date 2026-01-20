@@ -22,7 +22,7 @@ PKG_LIBS := $(shell $(PKG_CONFIG) --libs $(PACKAGES))
 all: $(TARGET)
 
 $(TARGET): $(SRC)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(PKG_CFLAGS) -o $@ $< $(PKG_LIBS)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(PKG_CFLAGS) -o $@ $< $(PKG_LIBS) -lole32 -loleaut32 -luuid
 
 clean:
 	rm -f $(TARGET)
