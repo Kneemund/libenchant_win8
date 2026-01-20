@@ -1,0 +1,42 @@
+---
+
+name: Build
+
+"on":
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2025
+    permissions:
+      # needed for uploading release artifact
+      contents: write
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          release: false
+          update: true
+          install: mingw-w64-x86_64-gcc mingw-w64-x86_64-enchant
+
+      - name: Build
+        run: gcc -shared -fPIC -o libenchant_win8.dll src/win8_provider.c
+
+      - name: Upload (workflow artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: libenchant_win8
+          path: libenchant_win8.dll
+          if-no-files-found: error
+
+      - name: Upload (release asset)
+        if: ${{ github.event_name == 'release' }}
+        shell: powershell
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ github.ref_name }} libenchant_win8.dll
