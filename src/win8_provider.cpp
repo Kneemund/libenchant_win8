@@ -32,7 +32,9 @@
 
 /* --------- Utils ----------*/
 
-static char* utf16_to_utf8(const wchar_t* const str, gboolean from_bcp47) {
+static char*
+utf16_to_utf8(const wchar_t* const str, gboolean from_bcp47)
+{
     char* utf8 = g_utf16_to_utf8((gunichar2*)str, -1, nullptr, nullptr, nullptr);
     if (utf8 && from_bcp47) {
         char* p = utf8;
@@ -46,7 +48,9 @@ static char* utf16_to_utf8(const wchar_t* const str, gboolean from_bcp47) {
     return utf8;
 }
 
-static wchar_t* utf8_to_utf16(const char* const str, size_t len, gboolean to_bcp47) {
+static wchar_t*
+utf8_to_utf16(const char* const str, size_t len, gboolean to_bcp47)
+{
     wchar_t* utf16 = (wchar_t*)g_utf8_to_utf16(str, len, nullptr, nullptr, nullptr);
     if (utf16 && to_bcp47) {
         wchar_t* p = utf16;
@@ -60,7 +64,9 @@ static wchar_t* utf8_to_utf16(const char* const str, size_t len, gboolean to_bcp
     return utf16;
 }
 
-static char** enumstring_to_chararray(IEnumString* strings, size_t* out_len, gboolean from_bcp47) {
+static char**
+enumstring_to_chararray(IEnumString* strings, size_t* out_len, gboolean from_bcp47)
+{
     GArray* array = g_array_new(TRUE, FALSE, sizeof(char*));
     LPOLESTR wstr = nullptr;
 
@@ -80,7 +86,9 @@ static char** enumstring_to_chararray(IEnumString* strings, size_t* out_len, gbo
 
 /* ---------- Dict ------------ */
 
-static void win8_dict_add_to_session(EnchantProviderDict* dict, const char* const word, size_t len) {
+static void
+win8_dict_add_to_session(EnchantProviderDict* dict, const char* const word, size_t len)
+{
     auto checker = static_cast<ISpellChecker*>(dict->user_data);
     wchar_t* wword = utf8_to_utf16(word, len, FALSE);
 
@@ -88,7 +96,9 @@ static void win8_dict_add_to_session(EnchantProviderDict* dict, const char* cons
     g_free(wword);
 }
 
-static void win8_dict_remove_from_session(EnchantProviderDict* dict, const char* const word, size_t len) {
+static void
+win8_dict_remove_from_session(EnchantProviderDict* dict, const char* const word, size_t len)
+{
     auto checker = static_cast<ISpellChecker*>(dict->user_data);
 
     // try to use ISpellChecker2::Remove if available (Windows 10+)
@@ -102,7 +112,9 @@ static void win8_dict_remove_from_session(EnchantProviderDict* dict, const char*
     }
 }
 
-static int win8_dict_check(EnchantProviderDict* dict, const char* const word, size_t len) {
+static int
+win8_dict_check(EnchantProviderDict* dict, const char* const word, size_t len)
+{
     auto checker = static_cast<ISpellChecker*>(dict->user_data);
     wchar_t* wword = utf8_to_utf16(word, len, FALSE);
     IEnumSpellingError* errors;
@@ -113,20 +125,22 @@ static int win8_dict_check(EnchantProviderDict* dict, const char* const word, si
     g_free(wword);
 
     if (FAILED(hr)) {
-        return -1;  // error
+        return -1; // error
     }
 
     if (errors->Next(&error) == S_OK) {
         error->Release();
         errors->Release();
-        return 1;  // spelling issue
+        return 1; // spelling issue
     } else {
         errors->Release();
-        return 0;  // correct
+        return 0; // correct
     }
 }
 
-static char** win8_dict_suggest(EnchantProviderDict* dict, const char* const word, size_t len, size_t* out_n_suggs) {
+static char**
+win8_dict_suggest(EnchantProviderDict* dict, const char* const word, size_t len, size_t* out_n_suggs)
+{
     auto checker = static_cast<ISpellChecker*>(dict->user_data);
     wchar_t* wword = utf8_to_utf16(word, len, FALSE);
     IEnumString* suggestions;
@@ -145,7 +159,9 @@ static char** win8_dict_suggest(EnchantProviderDict* dict, const char* const wor
 
 /* ---------- Provider ------------ */
 
-static EnchantProviderDict* win8_provider_request_dict(EnchantProvider* provider, const char* const tag) {
+static EnchantProviderDict*
+win8_provider_request_dict(EnchantProvider* provider, const char* const tag)
+{
     auto factory = static_cast<ISpellCheckerFactory*>(provider->user_data);
     ISpellChecker* checker;
     EnchantProviderDict* dict;
@@ -170,14 +186,18 @@ static EnchantProviderDict* win8_provider_request_dict(EnchantProvider* provider
     return dict;
 }
 
-static void win8_provider_dispose_dict(EnchantProvider* /* provider */, EnchantProviderDict* dict) {
+static void
+win8_provider_dispose_dict(EnchantProvider* /* provider */, EnchantProviderDict* dict)
+{
     if (dict) {
         auto checker = static_cast<ISpellChecker*>(dict->user_data);
         checker->Release();
     }
 }
 
-static int win8_provider_dictionary_exists(EnchantProvider* provider, const char* const tag) {
+static int
+win8_provider_dictionary_exists(EnchantProvider* provider, const char* const tag)
+{
     auto factory = static_cast<ISpellCheckerFactory*>(provider->user_data);
     wchar_t* wtag = utf8_to_utf16(tag, -1, TRUE);
 
@@ -188,7 +208,9 @@ static int win8_provider_dictionary_exists(EnchantProvider* provider, const char
     return is_supported;
 }
 
-static char** win8_provider_list_dicts(EnchantProvider* provider, size_t* out_n_dicts) {
+static char**
+win8_provider_list_dicts(EnchantProvider* provider, size_t* out_n_dicts)
+{
     auto factory = static_cast<ISpellCheckerFactory*>(provider->user_data);
     IEnumString* dicts;
 
@@ -200,7 +222,9 @@ static char** win8_provider_list_dicts(EnchantProvider* provider, size_t* out_n_
     return enumstring_to_chararray(dicts, out_n_dicts, TRUE);
 }
 
-static void win8_provider_dispose(EnchantProvider* provider) {
+static void
+win8_provider_dispose(EnchantProvider* provider)
+{
     if (provider) {
         auto factory = static_cast<ISpellCheckerFactory*>(provider->user_data);
 
@@ -209,17 +233,24 @@ static void win8_provider_dispose(EnchantProvider* provider) {
     }
 }
 
-static const char* win8_provider_identify(EnchantProvider* /* provider */) {
+static const char*
+win8_provider_identify(EnchantProvider* /* provider */)
+{
     return "win8";
 }
 
-static const char* win8_provider_describe(EnchantProvider* /* provider */) {
+static const char*
+win8_provider_describe(EnchantProvider* /* provider */)
+{
     return "Windows 8 SpellCheck Provider";
 }
 
-extern "C" EnchantProvider* init_enchant_provider(void);
+extern "C" EnchantProvider*
+init_enchant_provider(void);
 
-EnchantProvider* init_enchant_provider(void) {
+EnchantProvider*
+init_enchant_provider(void)
+{
     EnchantProvider* provider;
     ISpellCheckerFactory* factory;
 
