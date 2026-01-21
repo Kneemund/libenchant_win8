@@ -23,7 +23,7 @@ TARGET := libenchant_win8.dll
 PKG_CFLAGS := $(shell $(PKG_CONFIG) --cflags $(PACKAGES))
 PKG_LIBS := $(shell $(PKG_CONFIG) --libs $(PACKAGES))
 
-. PHONY: all clean
+.PHONY: all clean
 
 all: $(TARGET)
 
