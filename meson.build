@@ -29,6 +29,7 @@ shared_module('enchant_win8',
   ],
   include_directories: include_directories('enchant' / 'lib'), # enchant-provider.h
   cpp_args: win_version_flags,
+  name_prefix: '',
   install: true,
   install_dir: get_option('libdir') / 'enchant-2',
 )
