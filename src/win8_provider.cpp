@@ -24,12 +24,10 @@
  * SOFTWARE.
  */
 
-#include "config.h"
-
 #include <glib.h>
 #include <spellcheck.h>
 
-#include "enchant-provider.h"
+#include <enchant-provider.h>
 
 /* --------- Utils ----------*/
 
